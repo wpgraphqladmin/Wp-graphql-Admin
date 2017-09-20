@@ -1,5 +1,6 @@
 === WPGraphQL Admin===
 Contributors: Ashok Kumar, Jayakrishnan S, Ajay Kumaran
+Url : https://www.netspective.com
 Requires at least: 4.7.0
 Tested up to: 4.8.2
 
