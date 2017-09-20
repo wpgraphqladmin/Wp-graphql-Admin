@@ -1,0 +1,46 @@
+.gph-ul li{
+				/*float:left;*/
+				margin:3px;
+				padding:3px;
+			} 
+			.clear-fix{clear:both;}	
+			.gph-met-ul li input[type="text"]{
+				margin-left: 25px;
+
+			}
+			.gph-met-ul li {
+				
+			}
+			.gph-met-ul li span {
+				width: 150px;
+				display: inline-block;
+			}
+			
+			#fieldform input[type="button"], #fieldform input[type="submit"]{
+				margin-top: 15px;
+				margin-right:  15px;
+			}
+			.marg{
+				margin-top: 25px;
+				margin-bottom: 25px;
+				font-weight: normal;
+			}
+			.post-container div{
+			
+				
+			}
+			.added-posts{
+				width:325px;
+				float:left;
+				
+			}
+			.added-posts ul li{
+				float:left;
+				width:150px;
+				
+			}
+			.not-added-posts{width:800px;float:left;}
+			.not-added-posts ul li{float:left;width:150px;}
+			.hide{
+				display: none!important;
+			}
