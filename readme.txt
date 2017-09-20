@@ -1,7 +1,8 @@
 === WPGraphQL Admin===
 Contributors: Ashok Kumar, Jayakrishnan S, Ajay Kumaran
 Requires at least: 4.7.0
-Tested up to: 4.8.1
+Tested up to: 4.8.2
+
 
 
 === Description ===
