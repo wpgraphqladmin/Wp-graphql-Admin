@@ -20,11 +20,7 @@ register_activation_hook( __FILE__, 'gql_activation' );
  */
 function gql_activation() {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	global  $wpdb;	
-    $wpdb->query('DROP TABLE IF EXISTS wp_grapql_support');  
-	file_put_contents(dirname( __FILE__ ) . '/support/postsupport.php', '' );
-	file_put_contents(dirname( __FILE__ ) . '/support/fieldsupport.php', '' );
-	file_put_contents(dirname( __FILE__ ) . '/support/mutationsupport.php', '' );
+	global  $wpdb;
 	$query_result   = $wpdb->get_results( "SHOW TABLES LIKE 'wp_grapql_support'" );// db call ok; no-cache ok.
 	if ( empty( $query_result ) ) {
 		$charset_collate = $wpdb->get_charset_collate();
