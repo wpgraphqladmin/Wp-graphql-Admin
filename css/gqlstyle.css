@@ -39,8 +39,10 @@
 				width:150px;
 				
 			}
-			.not-added-posts{width:800px;float:left;}
-			.not-added-posts ul li{float:left;width:150px;}
+			.not-added-posts{width:800px;float:left;}			
+			.not-added-posts ul li span{display:inline-block;width:150px;}
 			.hide{
 				display: none!important;
 			}
+			#wpfooter {
+   			 position: relative;
