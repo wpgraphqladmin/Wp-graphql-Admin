@@ -1,8 +1,8 @@
 <?php
 
 /*
-Plugin Name: WPGraphQL Admin
-Description: WPGraphQL Admin
+Plugin Name: WP GraphQL Admin
+Description: WP GraphQL Admin
 Author: Netspective
 Version: 1.0
 Author URI: "https://www.netspective.com"
@@ -35,8 +35,13 @@ function gql_activation() {
 						`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE     CURRENT_TIMESTAMP,     
 						PRIMARY KEY (`id`)
 					)ENGINE=MYISAM DEFAULT CHARSET=latin1;';
-		dbDelta( $query );
-		$wpdb->insert(
+		dbDelta( $query );		
+	}else{
+		$ret = $wpdb->delete(
+				'wp_grapql_support',
+			); // db call ok; no-cache ok.
+	}
+	$wpdb->insert(
 			'wp_grapql_support', array(
 				'identifier' => 'posttype',
 				'field' => '',
@@ -52,7 +57,6 @@ function gql_activation() {
 				'name' => 'page',
 			)
 		);
-	}
 }
 /**
  * Enque js and css.
