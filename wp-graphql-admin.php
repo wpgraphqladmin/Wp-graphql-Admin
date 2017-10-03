@@ -1,8 +1,8 @@
 <?php
 
 /*
-Plugin Name: GraphQL Admin
-Description: GraphQL Admin
+Plugin Name: WPGraphQL Admin
+Description: WPGraphQL Admin
 Author: Netspective
 Version: 1.0
 Author URI: "https://www.netspective.com"
