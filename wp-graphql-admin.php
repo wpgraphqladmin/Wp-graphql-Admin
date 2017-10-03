@@ -1,5 +1,4 @@
 <?php
-
 /*
 Plugin Name: WP GraphQL Admin
 Description: WP GraphQL Admin
@@ -9,7 +8,6 @@ Author URI: "https://www.netspective.com"
 */
 ?>
 <?php
-
 /**
  * Activation hook
  */
@@ -22,7 +20,11 @@ register_activation_hook( __FILE__, 'gql_activation' );
  */
 function gql_activation() {
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	global  $wpdb;
+	global  $wpdb;	
+    $wpdb->query('DROP TABLE IF EXISTS wp_grapql_support');  
+	file_put_contents(dirname( __FILE__ ) . '/support/postsupport.php', '' );
+	file_put_contents(dirname( __FILE__ ) . '/support/fieldsupport.php', '' );
+	file_put_contents(dirname( __FILE__ ) . '/support/mutationsupport.php', '' );
 	$query_result   = $wpdb->get_results( "SHOW TABLES LIKE 'wp_grapql_support'" );// db call ok; no-cache ok.
 	if ( empty( $query_result ) ) {
 		$charset_collate = $wpdb->get_charset_collate();
@@ -35,13 +37,8 @@ function gql_activation() {
 						`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE     CURRENT_TIMESTAMP,     
 						PRIMARY KEY (`id`)
 					)ENGINE=MYISAM DEFAULT CHARSET=latin1;';
-		dbDelta( $query );		
-	}else{
-		$ret = $wpdb->delete(
-				'wp_grapql_support',
-			); // db call ok; no-cache ok.
-	}
-	$wpdb->insert(
+		dbDelta( $query );
+		$wpdb->insert(
 			'wp_grapql_support', array(
 				'identifier' => 'posttype',
 				'field' => '',
@@ -57,6 +54,7 @@ function gql_activation() {
 				'name' => 'page',
 			)
 		);
+	}
 }
 /**
  * Enque js and css.
@@ -293,7 +291,7 @@ function gql_get_remove_field_htmlform( $removed_filed_array, $type ) {
  * @param  array $alias_fields_names  exists key array.
  */
 function gql_get_metakey_for_form( $meta_keys, $alias_fields_names ) {
-	 $meta_key_value_arr = array();
+	$meta_key_value_arr = array();
 	foreach ( $meta_keys as $meta_key ) {
 		$m_array_count = count( $meta_key_value_arr );
 		if ( array_key_exists( $meta_key, $alias_fields_names ) ) {
@@ -980,4 +978,3 @@ function gql_support_remove_mut_fields() {
 require_once dirname( __FILE__ ) . '/support/postsupport.php';
 require_once dirname( __FILE__ ) . '/support/fieldsupport.php';
 require_once dirname( __FILE__ ) . '/support/mutationsupport.php';
-
