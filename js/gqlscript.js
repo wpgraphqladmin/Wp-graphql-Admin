@@ -2,11 +2,14 @@ function onlyText(e) {
 			var letterNumber = /^[0-9a-zA-Z]+$/;  
 			//console.log(e);
 			//alert(e.target.value);
-			if((e.target.value.match(letterNumber))){  				
-			} else{   
-				e.target.value =  e.target.value.substring(0,  e.target.value.length - 1);
-				return false;   
-			} 
+			if(e.target.value.length > 0){
+				if((e.target.value.match(letterNumber))){  			
+				
+				} else{   
+					e.target.value =  e.target.value.substring(0,  e.target.value.length - 1);
+					return false;   
+				} 
+			}
 
 		}
 
