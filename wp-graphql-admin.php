@@ -1,4 +1,5 @@
 <?php
+
 /*
 Plugin Name: WP GraphQL Admin
 Description: WP GraphQL Admin
@@ -8,14 +9,13 @@ Author URI: "https://www.netspective.com"
 */
 ?>
 <?php
+
 /**
  * Activation hook
  */
 register_activation_hook( __FILE__, 'gql_activation' );
 
 /**
- * Activation function.
- *
  * Activation function.
  */
 function gql_activation() {
@@ -90,7 +90,7 @@ function gql_admin_create_menu() {
  *
  * Display the available post types for adding the grapql post support.
  */
-function gql_post_support_page() {
+function gql_post_support_page() {	
 	gql_get_posttypes_postsupport();
 }
 /**
@@ -202,14 +202,14 @@ function gql_get_addfield_htmlform( $meta_key_value_arr, $type, $fposttype ) {
 		$jv_element_id = 'ad-field-field';
 		$input_box_name = 'metakeys[]';
 		$formname = 'afields';
-		$btn_display_name = 'Add Fields';
+		$btn_display_name = 'Fields';
 	} else if ( 'mutation' === $type ) {
 		$nonce = wp_create_nonce( 'add-mut-field' );
 		$jvscript_func = 'saveGraphqlMutationFields()';
 		$jv_element_id = 'ad-mut-field';
 		$input_box_name = 'mmetakeys[]';
 		$formname = 'mfields';
-		$btn_display_name = 'Add Mutaion Support';
+		$btn_display_name = 'Mutaion Support';
 	}
 	?>
 	<form id="<?php echo $formname;   // WPCS: XSS OK. ?>" name="<?php echo $formname;  // WPCS: XSS OK. ?>">
@@ -217,16 +217,25 @@ function gql_get_addfield_htmlform( $meta_key_value_arr, $type, $fposttype ) {
 		<h1 class="marg">Custom Fields  of <?php echo $fposttype ; // WPCS: XSS OK. ?></h1>
 		<ul class="gph-met-ul">
 			<?php
+			$op_display_name = 'Add ';
 			foreach ( $meta_key_value_arr as $meta_field_arr ) {
+				if ( 'checked' === $meta_field_arr['chkornot'] ) {
+					$op_display_name = 'Add or Update ';
+				}
 				?>
 				<li>
-					<input type="checkbox" name="<?php echo $input_box_name ; // WPCS: XSS OK. ?>" value="<?php echo $meta_field_arr['key']; // WPCS: XSS OK. ?>" <?php echo $meta_field_arr['chkornot']; // WPCS: XSS OK. ?>  />
+					<input type="checkbox" name="<?php echo $input_box_name ; // WPCS: XSS OK. ?>" value="<?php echo $meta_field_arr['key']; // WPCS: XSS OK. ?>" <?php echo $meta_field_arr['chkornot']; // WPCS: XSS OK. ?>  onchange="pboxChange(this)" />
 					<span><?php echo $meta_field_arr['key']; // WPCS: XSS OK. ?></span>
-					<input type="text" name="<?php echo $meta_field_arr['key']; // WPCS: XSS OK. ?>"  value="<?php echo $meta_field_arr['alias'];// WPCS: XSS OK. ?>" onKeyPress="return onlyText(event)"   onkeyup="return onlyText(event)" /> </li>
-			<?php } ?>
+					<input type="text" name="<?php echo $meta_field_arr['key']; // WPCS: XSS OK. ?>"  value="<?php echo $meta_field_arr['alias'];// WPCS: XSS OK. ?>" onKeyPress="return onlyText(event)"   onkeyup="return onlyText(event)"  /> </li>
+			<?php
+			}
+			$btn_display_name = $op_display_name . $btn_display_name ;
+				?>
 		</ul>				
 		<div class="clear-fix"></div>
-		<input type="button" value="<?php echo $btn_display_name;// WPCS: XSS OK. ?>"  class="button button-primary button-large"   onclick="<?php echo $jvscript_func; // WPCS: XSS OK. ?>" />	
+		<div id= "gql-error" class="gql-error"></div>
+		<input type="button" value="<?php echo $btn_display_name;// WPCS: XSS OK. ?>"  class="gql-btn button button-primary button-large"   onclick="<?php echo $jvscript_func; // WPCS: XSS OK. ?>" />	
+		<div id= "gql-loader" class="loader"></div>
 		<input type="hidden" id= "fposttype" name="fposttype" value="<?php echo  $fposttype; // WPCS: XSS OK. ?>"/>
 		<?php } else if ( $fposttype ) { ?>
 		   <h1 class="marg">No fields to display</h1>
@@ -265,13 +274,15 @@ function gql_get_remove_field_htmlform( $removed_filed_array, $type ) {
 					foreach ( $removed_filed_array as $key => $value ) {
 						?>
 						<li>
-							<input type="checkbox" name="<?php echo $input_box_name ; // WPCS: XSS OK. ?>" value="<?php echo $key; // WPCS: XSS OK. ?>"  />
+							<input type="checkbox" name="<?php echo $input_box_name ; // WPCS: XSS OK. ?>" value="<?php echo $key; // WPCS: XSS OK. ?>"  onchange="pboxChange(this)" />
 							<?php echo $key; // WPCS: XSS OK. ?>
 				<?php } ?>	
 				</li>
 			</ul>				
 			<div class="clear-fix"></div>
-			<input type="button" value="Remove Fields" class="button button-primary button-large"  onclick="<?php echo $jvscript_func; // WPCS: XSS OK. ?>" />
+			<div id= "gql-error-r" class="gql-error"></div>
+			<input type="button" value="Remove Fields" class="button button-primary button-large gql-btn"  onclick="<?php echo $jvscript_func; // WPCS: XSS OK. ?>" />
+			<div id= "gql-loader-r" class="loader"></div>
 			<input type="hidden" id="<?php echo $jv_element_id; // WPCS: XSS OK. ?>" value="<?php echo $nonce; // WPCS: XSS OK. ?>" />
 			</form>	
 		<?php } ?>
@@ -316,7 +327,7 @@ function gql_get_metakey_for_form( $meta_keys, $alias_fields_names ) {
 		}
 	}
 	return $meta_key_value_arr;
-	print_r();
+
 }
 /**
  * Displays the post types
@@ -392,6 +403,7 @@ function gql_get_posttypes_postsupport() {
 			array_push( $not_added_post,$post_type );
 		}
 	}
+	$added_posts = $wpdb->get_results( "Select name, alias from wp_grapql_support where identifier = 'posttype'" );// db call ok; no-cache ok.
 	?>
 	<div class="wrap"><div id="icon-tools" class="icon32"></div>
 		<h2>GraphQL Post Support</h2>
@@ -403,18 +415,24 @@ function gql_get_posttypes_postsupport() {
 				<div class="gql-note">Posts that have the GraphQL support.</div>
 				<ul class="gph-ul">
 					<?php
-					if ( count( $added_post ) > 0 ) {
-						foreach ( $added_post as $ap ) {
+					if ( count( $added_posts ) > 0 ) {
+						foreach ( $added_posts as $ap ) {
 						?>
 						<li>
-							<input type="checkbox"   name="aposttype[]" value="<?php echo  $ap; // WPCS: XSS OK. ?>" checked disabled /> 	
-							<?php echo  $ap; // WPCS: XSS OK. ?>
+							<input type="checkbox"   name="rposttype[]" value="<?php echo  $ap->name; // WPCS: XSS OK. ?>" checked disabled  /> 	
+							<?php
+							if ( 'post' == $ap->name || 'page' == $ap->name ) {
+								echo  $ap->name ; // WPCS: XSS OK.
+							} else {
+								echo  $ap->name . ' / ' . $ap->alias; // WPCS: XSS OK.
+							}
+									?>
 						</li>
 					<?php
 						}
 					}
 					?>
-				</ul>
+				</ul>				
 				<div class="clear-fix"></div>
 			</div>	
 			<div class="not-added-posts">
@@ -428,7 +446,7 @@ function gql_get_posttypes_postsupport() {
 							$alias = str_replace( ' ', '', $alias );
 						?>
 						<li>
-							<input type="checkbox"   name="posttype[]" value="<?php echo  $ap; // WPCS: XSS OK. ?>"  /> 	
+							<input type="checkbox"   name="posttype[]" value="<?php echo  $ap; // WPCS: XSS OK. ?>" onchange="pboxChange(this)" /> 	
 							<span><?php echo  $ap ; // WPCS: XSS OK. ?></span>
 							<input type="text" name="<?php echo $ap;// WPCS: XSS OK. ?>"  value="<?php echo $alias;// WPCS: XSS OK. ?>" onKeyPress="return onlyText(event)"   onkeyup="return onlyText(event)" />
 						</li>
@@ -438,8 +456,10 @@ function gql_get_posttypes_postsupport() {
 					?>
 				</ul>
 				<div class="clear-fix"></div>
+				<div id= "gql-error" class="gql-error"></div>
 				<input type="hidden" id="ad-post-nonce" value="<?php echo  wp_create_nonce( 'add-post' ); // WPCS: XSS OK. ?>" />
-				<input type="button" value="Add Post Support" class="button button-primary button-large" onclick="gqlPostSupport()" />	
+				<input type="button" value="Add Post Support" class="button button-primary button-large gql-btn" onclick="gqlPostSupport()" />	
+				<div id= "gql-loader" class="loader"></div>
 				<div>Note: If you do not see the posts for which you like to enable GraphQL support, please go to Post Support tab and select and enable.</div>				
 			</div>		
 		</div>
@@ -502,6 +522,8 @@ function gql_support_add_posts() {
 	$already_added_checker = false;
 	$query_checker = false;
 	$already_added_posttypes = '';
+	$error = 1;
+	$output = 'Something went wrong. Please try again.';
 	if ( isset( $_POST['addpostnonce'] ) ) { // Input var okay.
 		if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['addpostnonce'] ) ) , 'add-post' ) ) { // Input var okay.
 			if ( isset( $_POST['ptypes'] ) ) { // Input var okay.
@@ -525,31 +547,32 @@ function gql_support_add_posts() {
 				}
 				foreach ( $gpost_types as $gtype ) {
 					$gtype = trim( $gtype );
-					if ( strlen( $gtype ) > 2 ) {
-						// Check to exists.
+					if ( strlen( $gtype ) > 2 ) {						
 						$gtype = esc_sql( strip_tags( wp_unslash( $gtype ) ) );
 						if ( isset( $_POST[ $gtype ] ) ) {
-							if ( strlen( $alias ) < 2 ) {
-								$alias = $gtype;
-							}
 							$alias = sanitize_text_field( wp_unslash( $_POST[ $gtype ] ) ); // Input var okay.
 							$alias = str_replace( "'",'', $alias );
 							$alias = str_replace( '"','', $alias );
-
 						}
-						$gtype = str_replace( "'",'',$gtype );
-						/*$query = $wpdb->prepare( "SELECT 1 FROM wp_grapql_support WHERE identifier='posttype' AND name = %s AND alias = %s", $gtype, $alias );*/
-						$result = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( "SELECT 1 FROM wp_grapql_support WHERE identifier='posttype' AND name = %s AND alias = %s", $gtype, $alias ) . ')	AS counts' );// db call ok; no-cache ok.
-						foreach ( $result as $row ) {
-							$count = $row->counts;
-						}
-						if ( 0 == $count ) {
-							if ( ! in_array( $gtype, $post_names ) ) {
-								$insert_query .= "( 'posttype','','$alias','$gtype'),";
+						$gtype = str_replace( "'",'',$gtype );											
+						if (!preg_match('/[^A-Za-z]/', $alias)) {						
+							$result = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( "SELECT 1 FROM wp_grapql_support WHERE identifier='posttype' AND name = %s AND alias = %s", $gtype, $alias ) . ')	AS counts' );// db call ok; no-cache ok.
+							foreach ( $result as $row ) {
+								$count = $row->counts;
 							}
+							if ( 0 == $count ) {
+								if ( ! in_array( $gtype, $post_names ) ) {
+									if ( strlen( trim( $alias ) ) > 2 ) {
+										$insert_query .= "( 'posttype','','$alias','$gtype'),";
+									}
+								}
+							}							
+						}else{
+							$output = 'Invalid post alias name. It should be at least 3 characters. Only allow letters';
 						}
+						//
 					} else {
-						$output = 'Mininum character of posttype is alleast two';
+						$output = 'Mininum character of posttype is at least 3 characters. ';
 					}
 				}
 				if ( strlen( $insert_query ) > 15 ) {
@@ -558,55 +581,78 @@ function gql_support_add_posts() {
 					$database_result = dbDelta( $query );
 					$query_checker = true;
 					if ( '' !== $wpdb->last_error ) {
-						$output = 'Something went wrong. Please try again';
+						$output = 'Something went wrong. Please try again. ';
 						echo json_encode( $output );
 						die();
 					}
 				}
 				// GrapQL write file.
 				if ( $query_checker ) {
-					$result = $wpdb->get_results( "Select name from wp_grapql_support where identifier='posttype' " );// db call ok; no-cache ok.
-					if ( count( $result ) > 0 ) {
-						$file = dirname( __FILE__ ) . '/support/postsupport.php';
-						$current = '<?php    add_action( "do_graphql_request", function() { global $wp_post_types;';
-						foreach ( $result as $row ) {
-							if ( isset( $row->name ) && strlen( $row->name ) > 2 ) {
-								if ( substr( strtolower( $row->name ), -1 ) == 's' ) {
-									$singular_name = chop( strtolower( $row->name ),'s' );
-									$plural_name = $row->name;
-								} else {
-									$plural_name = $row->name . 's';
-									$singular_name = $row->name;
-								}
-								$current .= 'if ( isset( $wp_post_types["' . $row->name . '"] ) ) {
-								$wp_post_types["' . $row->name . '"]->show_in_graphql     = true;
-								$wp_post_types["' . $row->name . '"]->graphql_single_name = "' . $singular_name . '";
-								$wp_post_types["' . $row->name . '"]->graphql_plural_name = "' . $plural_name . '";
-								}';
-							}
-						}
-						if ( strlen( $current ) > 30 ) {
-							$current .= '} );';
-							file_put_contents( $file, $current );
-						}
-					}
+					gql_post_writefile();
+					$output = 'GrapQl Support Added Successfully. ';
+					$error = 0;
 				}
 				if ( $already_added_checker ) {
 					$already_added_posttypes  = trim( $already_added_posttypes,', ' );
-					$output = ucfirst( $already_added_posttypes ) . ' post types are already added.';
-				} else {
-					$output = 'GrapQl Support Added Successfully';
-				}
-				echo json_encode( $output );
+					$output = ucfirst( $already_added_posttypes ) . ' post types are already added. ';
+				}				
 			}
 		}
 	}
+	$return['error'] = $error; 
+	$return['message'] = $output; 
+	echo wp_json_encode( $return );// WPCS: XSS OK.
 	die();
+}
+/**
+ * Post write to file
+ */
+function gql_post_writefile() {
+	global $wpdb;
+	$result = $wpdb->get_results( "Select name,alias from wp_grapql_support where identifier='posttype' " );// db call ok; no-cache ok.
+	if ( count( $result ) > 0 ) {
+		$file = dirname( __FILE__ ) . '/support/postsupport.php';
+		$current = '<?php    add_action( "do_graphql_request", function() { global $wp_post_types;';
+		foreach ( $result as $row ) {
+			if ( isset( $row->name ) && strlen( $row->alias ) > 2 ) {
+				if ( substr( strtolower( $row->alias ), -1 ) == 's' ) {
+					$singular_name = chop( strtolower( $row->alias ),'s' );
+					$plural_name = $row->alias;
+				} else {
+					$plural_name = $row->alias . 's';
+					$singular_name = $row->alias;
+				}
+				$current .= 'if ( isset( $wp_post_types["' . $row->name . '"] ) ) {
+				$wp_post_types["' . $row->name . '"]->show_in_graphql     = true;
+				$wp_post_types["' . $row->name . '"]->graphql_single_name = "' . $singular_name . '";
+				$wp_post_types["' . $row->name . '"]->graphql_plural_name = "' . $plural_name . '";
+				}';
+			}
+		}
+		if ( strlen( $current ) > 30 ) {
+			$current .= '} );';
+			file_put_contents( $file, $current );
+		}
+	}
 }
 /**
 * Ajax hook.
 */
 add_action( 'wp_ajax_gql_support_add_fields', 'gql_support_add_fields' );
+/**
+ * Get post alias name
+ *
+ * @param  string $posttype  posttype.
+ * @return string  posttype
+ */
+function get_post_alias_name( $posttype ) {
+	global  $wpdb;
+	$post_alias_result = $wpdb->get_results( $wpdb->prepare( "SELECT alias FROM wp_grapql_support WHERE identifier='posttype' AND name = %s", $posttype ) );// db call ok; no-cache ok.
+	foreach ( $post_alias_result as $row ) {
+		$post_alias = $row->alias;
+	}
+	return $post_alias;
+}
 /**
  * Enable the grapql field support to post fields.
  */
@@ -614,6 +660,7 @@ function gql_support_add_fields() {
 	global  $wpdb;
 	$update_query = '';
 	$query_checker = false;
+	$error = 1;
 	$output = 'Something went wrong. Please try again.';
 	if ( isset( $_POST['addfieldnonce'] ) ) { // Input var okay.
 		if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['addfieldnonce'] ) ) , 'add-field-field' ) ) { // Input var okay.
@@ -629,6 +676,7 @@ function gql_support_add_fields() {
 					$fpost_type = sanitize_text_field( wp_unslash( $_POST['posttype'] ) ); // Input var okay.
 					if ( strlen( $fpost_type ) > 2 ) {
 						$fpost_type = str_replace( "'",'',$fpost_type );
+						$post_alias = get_post_alias_name( $fpost_type );
 						$result = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( "SELECT 1 FROM wp_grapql_support WHERE identifier='posttype' AND name = %s", $fpost_type ) . ' )	AS counts' );// db call ok; no-cache ok.
 						if ( is_wp_error( $result ) ) {
 							exit;
@@ -636,26 +684,34 @@ function gql_support_add_fields() {
 						foreach ( $result as $row ) {
 							$count = intval( $row->counts );
 						}
-						if ( 1 === $count ) {
-							// Check if the field field to add.
-							// Database insert function.
-							$write_checker = gql_table_insert( $fpost_type,$gpost_fields,'field',$_POST ); // Input var okay.
-							if ( $write_checker ) {
-								gql_field_writefile();
+						if ( strlen( $post_alias ) > 2 ) {
+							if ( 1 === $count ) {
+								// Check if the field field to add.
+								// Database insert function.
+								$write_checker = gql_table_insert( $fpost_type,$gpost_fields,'field',$_POST ); // Input var okay.
+								if ( $write_checker ) {
+									gql_field_writefile( $post_alias );
+									$output = 'Fields added successfully. ';
+									$error = 0;
+								}
+								
+
+							} else {
+								$output = 'Please add the post first to add the fields. ';
 							}
-							$output = 'Fields added successfully';
 						} else {
-							$output = 'Please add the post first to add the fields.';
+							$output = 'Invalid post alias name!. ';
 						}
 					} else {
-						$output = 'Invalid post type';
+						$output = 'Invalid post type. ';
 					}
 				}
 			}
 		}
 	}
-
-	echo wp_json_encode( $output );
+	$return['error'] = $error; 
+	$return['message'] = $output; 
+	echo wp_json_encode( $return );// WPCS: XSS OK.
 	die();
 }
 /**
@@ -668,7 +724,8 @@ add_action( 'wp_ajax_gql_support_remove_fields', 'gql_support_remove_fields' );
 function gql_support_remove_fields() {
 	global  $wpdb;
 	$update_query = '';
-	$output = 'Something went wrong. Please try again';
+	$output = 'Something went wrong. Please try again. ';
+	$error = 1;
 	if ( isset( $_POST['remvfieldnonce'] ) ) { // Input var okay.
 		if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['remvfieldnonce'] ) ) , 'remove-field-field' ) ) {// Input var okay.
 			if ( isset( $_POST['rfields'] ) ) {
@@ -682,6 +739,7 @@ function gql_support_remove_fields() {
 					if ( isset( $gpost_fields ) && count( $gpost_fields ) > 0 ) {
 						foreach ( $gpost_fields as $gpost_field ) {
 							$gpost_field = esc_sql( strip_tags( wp_unslash( $gpost_field ) ) );
+							$post_alias = get_post_alias_name( $fpost_type );
 							$count_checker = $wpdb->get_results( $wpdb->prepare( "SELECT id FROM wp_grapql_support WHERE identifier='field' AND name = %s AND field = %s " , $fpost_type, $gpost_field ) );// db call ok; no-cache ok.
 							foreach ( $count_checker as $crow ) {
 								$delete_id = $crow->id;
@@ -698,23 +756,29 @@ function gql_support_remove_fields() {
 							}
 						}
 						if ( $delete_checker ) {
-							gql_field_writefile();
+							gql_field_writefile( $post_alias );
+							$error = 0;
+							$output = 'Fields removed successfully. ';
 						}
-						$output = 'Fields removed successfully';
+						
 					}
 				} else {
-					$output = 'Invalid post type';
+					$output = 'Invalid post type. ';
 				}
 			}
 		}
 	}
-	echo wp_json_encode( $output );
+	$return['error'] = $error; 
+	$return['message'] = $output; 
+	echo wp_json_encode( $return );// WPCS: XSS OK.
 	die();
 }
 /**
  * Write mutation field to file.
+ *
+ * @param string $post_alias Post alias name.
  */
-function gql_field_writefile() {
+function gql_field_writefile( $post_alias ) {
 	global $wpdb;
 	$result = $wpdb->get_results( "Select alias,field,name from wp_grapql_support where identifier='field' order by name" );  // db call ok; no-cache ok.
 	$file = dirname( __FILE__ ) . '/support/fieldsupport.php';
@@ -723,11 +787,6 @@ function gql_field_writefile() {
 		$oldpost_name = '';
 		$loop_checker = 0;
 		foreach ( $result as $row ) {
-			if ( substr( strtolower( $row->name ), -1 ) === 's' ) {
-				$singular_name = chop( strtolower( $row->name ),'s' );
-			} else {
-				$singular_name = $row->name;
-			}
 			$field_name_arr = explode( '-',$row->alias );
 			$field_name = $field_name_arr[0] . ucfirst( $field_name_arr[1] );
 			if ( $oldpost_name === $row->name ) {
@@ -741,9 +800,9 @@ function gql_field_writefile() {
 							 ];';
 			} else {
 				if ( 1 === $loop_checker ) {
-					$current .= '}';
+					$current .= 'return $fields; }';
 				}
-				$current .= "add_filter( 'graphql_" . $singular_name . "_fields', '" . $row->name . "_cutomfield' );";
+				$current .= "add_filter( 'graphql_" . $post_alias . "_fields', '" . $row->name . "_cutomfield' );";
 				$current .= 'function ' . $row->name . '_cutomfield( $fields ) { ';
 				$current .= '$fields["' . $field_name . '"] = [
 							        "type" => WPGraphQL\Types::string(),
@@ -773,6 +832,8 @@ add_action( 'wp_ajax_gql_support_mutation_fields', 'gql_support_mutation_fields'
 function gql_support_mutation_fields() {
 	global  $wpdb;
 	$update_query = '';
+	$error = 0;
+	$output = 'Something went wrong. Please try again.';
 	if ( isset( $_POST['addmutnonce'] ) ) { // Input var okay.
 		if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['addmutnonce'] ) ) , 'add-mut-field' ) ) { // Input var okay.
 			if ( isset( $_POST['mfields'] ) ) { // Input var okay.
@@ -781,33 +842,41 @@ function gql_support_mutation_fields() {
 			$gpost_fields = explode( ',', $mfields );
 			$query_result   = $wpdb->get_results( "SHOW TABLES LIKE 'wp_grapql_support'" );// db call ok; no-cache ok.
 			if ( empty( $query_result ) ) {
-				$output = 'Please add the post first to add the fields.';
+				$output = 'Please add the post first to add the fields. ';
 			} else {
 				if ( isset( $_POST['posttype'] ) ) { // Input var okay.
 					$fpost_type = sanitize_text_field( wp_unslash( $_POST['posttype'] ) ); // Input var okay.
+					$post_alias = get_post_alias_name( $fpost_type );
 					$result = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( "SELECT 1 FROM wp_grapql_support WHERE identifier='posttype' AND name = %s", $fpost_type ) . ' )	AS counts' );// db call ok; no-cache ok.
 					foreach ( $result as $row ) {
 						$count = $row->counts;
 					}
-					if ( 0 === $count ) {
-						$output = 'Please add the post first to add the fields.';
-					} else {
-						// Check if the mutation field to add.
-						if ( isset( $gpost_fields ) && count( $gpost_fields ) > 0 ) {
-							// Database insert function.
-							$write_checker = gql_table_insert( $fpost_type,$gpost_fields,'mutation',$_POST ); // Input var okay.
-							if ( $write_checker ) {
-								gql_mutation_writefile();
+					if ( strlen( $post_alias ) > 2 ) {
+						if ( 0 === $count ) {
+							$output = 'Please add the post first to add the fields.';
+						} else {
+							// Check if the mutation field to add.
+							if ( isset( $gpost_fields ) && count( $gpost_fields ) > 0 ) {
+								// Database insert function.
+								$write_checker = gql_table_insert( $fpost_type,$gpost_fields,'mutation',$_POST ); // Input var okay.
+								if ( $write_checker ) {
+									gql_mutation_writefile( $post_alias );
+									$error = 0;
+									$output = 'Mutations added successfully. ';
+								}
+								
 							}
-							$output = 'Mutations added successfully';
 						}
+					} else {
+						$output = 'Invalid field alias name !. ';
 					}
 				}
 			}
 		}
-		$output = 'Mutations added successfully';
 	}
-	echo wp_json_encode( $output );
+	$return['error'] = $error; 
+	$return['message'] = $output; 
+	echo wp_json_encode( $return );// WPCS: XSS OK.
 	die();
 }
 /**
@@ -827,31 +896,32 @@ function gql_table_insert( $post_type, $field_array, $identifier, $post_array ) 
 	foreach ( $field_array as $gpost_field ) {
 		$gpost_field = esc_sql( strip_tags( wp_unslash( $gpost_field ) ) );
 		if ( isset( $post_array[ $gpost_field ] ) ) {
-				$alias = sanitize_text_field( wp_unslash( $post_array[ $gpost_field ] ) ); // Form verified.
+			$alias = sanitize_text_field( wp_unslash( $post_array[ $gpost_field ] ) ); // Form verified.
 		}
-		$count_checker = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( 'SELECT 1 FROM wp_grapql_support WHERE identifier = %s AND name = %s AND field =%s ', $identifier ,$post_type , $gpost_field ) . ' )	AS counts' );// db call ok; no-cache ok.
-		$count_checker = $wpdb->get_results( $query ); // db call ok; no-cache ok.
-		foreach ( $count_checker as $crow ) {
-			$count = $crow->counts ;
-		}
-		if ( 0 == $count ) {
-			if ( strlen( $alias ) < 2 ) {
-				$alias = $gpost_field;
+		if (!preg_match('/[^A-Za-z]/', $alias)) {		
+			$count_checker = $wpdb->get_results( 'SELECT EXISTS (' . $wpdb->prepare( 'SELECT 1 FROM wp_grapql_support WHERE identifier = %s AND name = %s AND field =%s ', $identifier ,$post_type , $gpost_field ) . ' )	AS counts' );// db call ok; no-cache ok.
+			foreach ( $count_checker as $crow ) {
+				$count = $crow->counts ;
 			}
-			if ( strlen( $gpost_field ) > 2 ) {
-				$value = $value . "('$identifier','$gpost_field','$alias','$post_type'" . '),';
-				$write_checker = true;
-			}
-		} else {
-			$exits_checker = $wpdb->get_results( $wpdb->prepare( 'SELECT alias from wp_grapql_support where  identifier = %s AND  field = %s' ,$identifier, $gpost_field ) ); // db call ok; no-cache ok.
-			foreach ( $exits_checker as $erow ) {
-				$old_alias = $erow->alias;
-			}
-			if ( $old_alias !== $alias ) {
-				if ( strlen( $gpost_field ) > 2 && strlen( $alias ) > 2 ) {
-					$update_query = "UPDATE wp_grapql_support SET alias='$alias' where identifier = '$identifier' AND field ='$gpost_field' AND name='$post_type';";
-					dbDelta( $update_query );
+			if ( 0 == $count ) {
+				if ( strlen( trim( $alias ) ) < 2 ) {
+					$alias = $gpost_field;
+				}
+				if ( strlen( $gpost_field ) > 2 ) {
+					$value = $value . "('$identifier','$gpost_field','$alias','$post_type'" . '),';
 					$write_checker = true;
+				}
+			} else {
+				$exits_checker = $wpdb->get_results( $wpdb->prepare( 'SELECT alias from wp_grapql_support where  identifier = %s AND  field = %s' ,$identifier, $gpost_field ) ); // db call ok; no-cache ok.
+				foreach ( $exits_checker as $erow ) {
+					$old_alias = $erow->alias;
+				}
+				if ( $old_alias !== $alias ) {
+					if ( strlen( $gpost_field ) > 2 && strlen( $alias ) > 2 ) {
+						$update_query = "UPDATE wp_grapql_support SET alias='$alias' where identifier = '$identifier' AND field ='$gpost_field' AND name='$post_type';";
+						dbDelta( $update_query );
+						$write_checker = true;
+					}
 				}
 			}
 		}
@@ -865,8 +935,10 @@ function gql_table_insert( $post_type, $field_array, $identifier, $post_array ) 
 }
 /**
  * Write mutation field to file.
+ *
+ * @param string $post_alias Post Alias name.
  */
-function gql_mutation_writefile() {
+function gql_mutation_writefile( $post_alias ) {
 	global $wpdb;
 	$result = $wpdb->get_results( "Select alias,field,name from wp_grapql_support where identifier='mutation' order by name" ); // db call ok; no-cache ok.
 	$file = dirname( __FILE__ ) . '/support/mutationsupport.php';
@@ -877,11 +949,6 @@ function gql_mutation_writefile() {
 		$add_mutation_fields = '';
 		$save_mutation_fields = '';
 		foreach ( $result as $row ) {
-			if ( substr( strtolower( $row->name ), -1 ) === 's' ) {
-				$singular_name = chop( strtolower( $row->name ),'s' );
-			} else {
-				$singular_name = $row->name;
-			}
 			$field_name_arr = explode( '-',$row->alias );
 			$field_name = $field_name_arr[0] . ucfirst( $field_name_arr[1] );
 			// Add field to post object mutation.
@@ -919,6 +986,8 @@ add_action( 'wp_ajax_gql_support_remove_mut_fields', 'gql_support_remove_mut_fie
 function gql_support_remove_mut_fields() {
 	global  $wpdb;
 	$update_query = '';
+	$error = 1;
+	$output = 'Something went wrong. Please try again.';
 	if ( isset( $_POST['remvmutnonce'] ) ) { // Input var okay.
 		if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['remvmutnonce'] ) ) , 'remove-mut-field' ) ) {// Input var okay.
 			if ( isset( $_POST['mrfields'] ) ) {// Input var okay.
@@ -952,9 +1021,10 @@ function gql_support_remove_mut_fields() {
 						}
 						if ( $delete_checker ) {
 							gql_mutation_writefile();
-							$output = 'Mutations removed successfully';
+							$error = 0;
+							$output = 'Mutations removed successfully.';
 						} else {
-							$output = 'Some thing went wrong. Please try again.';
+							$output = 'Something went wrong. Please try again.';
 						}
 					} else {
 						$output = 'Something went wrong please try again.';
@@ -967,10 +1037,14 @@ function gql_support_remove_mut_fields() {
 			}
 		}
 	}
-	echo wp_json_encode( $output );
+	$return['error'] = $error; 
+	$return['message'] = $output; 
+	echo wp_json_encode( $return );// WPCS: XSS OK.
 	die();
 }
 // Include the files.
 require_once dirname( __FILE__ ) . '/support/postsupport.php';
 require_once dirname( __FILE__ ) . '/support/fieldsupport.php';
 require_once dirname( __FILE__ ) . '/support/mutationsupport.php';
+
+
